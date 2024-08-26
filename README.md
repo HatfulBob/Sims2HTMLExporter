@@ -2,7 +2,7 @@
  Transform a SimPE exported neighborhood into an HTML website directory for The Sims 2
  This is currently a proof of concept.
 
- Download it [here](https://github.com/HatfulBob/Sims2HTMLExporter/releases/tag/release)
+ Download the latest executable release [here](https://github.com/HatfulBob/Sims2HTMLExporter/releases/tag/release)
 
  ## Instructions how to use
  1. First, you need to extract your neighborhood from SimPE. Open SimPE, at the top of the screen select the Tools -> Neighborhood -> Export Neighbourhoods. When done, select a folder where you want your exported neighborhood to be and then finally select the neighborhood you want to export. Click 'Open', bottom left for -File Type select .csv then click "Apply". When it's ready, you're ready to use this tool!
@@ -16,7 +16,8 @@
 ## Todo
 There's a lot of information still missing that can be parsed. Some more ambitious ideas, such as family tree visualisation, may be considered.
 - Lot information (pages for lots, perhaps Sim pages saying where they live exactly)
-- Filtering options on homepage
+- Filtering options on homepage (probably put it all in a Datatables table)
+- More images (such as aspiration icons or skill bars)
 - Personality information
 - Skills information
 - Interests information
