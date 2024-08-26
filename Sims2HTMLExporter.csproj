@@ -17,7 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="HTMLTemplate\household\household.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="HTMLTemplate\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="HTMLTemplate\lot\lot.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="HTMLTemplate\sim\sim.html">

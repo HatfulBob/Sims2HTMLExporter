@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;  // Make sure to include Newtonsoft.Json or System.Text.Json
+﻿using Newtonsoft.Json;  // Make sure to include Newtonsoft.Json or System.Text.Json
 
 public class SimData
 {

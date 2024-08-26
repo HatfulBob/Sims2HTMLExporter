@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Security;
-using System.Windows.Forms;
+﻿using System.Security;
 
 namespace Sims2HTMLExporter
 {
     public partial class Form1 : Form
     {
         public static List<SimData> simData;
+        public static List<LotData> lotData;
         public static string neighborhoodName;
         public Form1()
         {
@@ -16,12 +15,19 @@ namespace Sims2HTMLExporter
             {
                 FileName = "ExportedSims.csv",
                 Filter = "Comma Seperated Values (*.csv)|*.csv",
-                Title = "Open csv file"
+                Title = "Open the ExportedSims csv file"
             };
-            label1.Text = "Click browse to load csv";
+            openFileDialog2 = new OpenFileDialog()
+            {
+                FileName = "ExportedLots.csv",
+                Filter = "Comma Seperated Values (*.csv)|*.csv",
+                Title = "Open the ExportedLots csv file"
+            };
+            label1.Text = "";
+            label5.Text = "";
         }
 
-        private void selectButton_Click(object sender, EventArgs e)
+        private void selectSimButton_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
@@ -29,7 +35,8 @@ namespace Sims2HTMLExporter
                 {
                     var filePath = openFileDialog1.FileName;
                     simData = SimData.ParseCsvToSimData(filePath);
-                    label1.Text = "Neighborhood parsed!";
+                    lotData = LotData.ParseCsvToLotData(filePath);
+                    label1.Text = "✔️";
                     CleanSimData();
                     neighborhoodName = simData.First().HoodName;
                     textBox1.Text = neighborhoodName;
@@ -38,7 +45,7 @@ namespace Sims2HTMLExporter
                 {
                     MessageBox.Show($"An error has occured! \n\nError message: {ex.Message}\n\n" +
                     $"Details:\n\n{ex.StackTrace}");
-                    label1.Text = "An error has occurred, try again.";
+                    label1.Text = "❌";
                     simData = null;
                     textBox1.Text = "";
                 }
@@ -50,7 +57,7 @@ namespace Sims2HTMLExporter
             //removes unplayables
             simData = simData.Where(x => x.HouseholdName != "Default" && !string.IsNullOrEmpty(x.LastName) && x.SimDescription != "(NPC)" && x.NPCType == "Normal Sim").ToList();
 
-            foreach(SimData sim in simData)
+            foreach (SimData sim in simData)
             {
 
                 sim.HoodName = sim.HoodName.Trim('\"');
@@ -94,11 +101,20 @@ namespace Sims2HTMLExporter
                 Directory.CreateDirectory(textBox2.Text + "\\sims\\");
                 Directory.CreateDirectory(textBox2.Text + "\\sims\\img");
             }
+            if (!Directory.Exists(textBox2.Text + "\\lot\\"))
+            {
+                Directory.CreateDirectory(textBox2.Text + "\\lot\\");
+                Directory.CreateDirectory(textBox2.Text + "\\lot\\img");
+            }
             foreach (var file in Directory.GetFiles(textBox3.Text))
-                if(!File.Exists(Path.Combine(textBox2.Text + "\\sims\\img", Path.GetFileName(file))))
-                File.Copy(file, Path.Combine(textBox2.Text + "\\sims\\img", Path.GetFileName(file)));
+                if (!File.Exists(Path.Combine(textBox2.Text + "\\sims\\img", Path.GetFileName(file))))
+                    File.Copy(file, Path.Combine(textBox2.Text + "\\sims\\img", Path.GetFileName(file)));
+            foreach (var file in Directory.GetFiles(textBox4.Text))
+                if (!File.Exists(Path.Combine(textBox2.Text + "\\lot\\img", Path.GetFileName(file))))
+                    File.Copy(file, Path.Combine(textBox2.Text + "\\lot\\img", Path.GetFileName(file)));
 
             GenerateSimsPages();
+            GenerateLotPages();
             GenerateIndex();
             MessageBox.Show("File saved successfully!");
 
@@ -172,6 +188,45 @@ namespace Sims2HTMLExporter
 
         }
 
+        private void GenerateLotPages()
+        {
+            TextReader tr = new StreamReader(@"HTMLTemplate/lot/lot.html");
+            string lotText = tr.ReadToEnd();
+            foreach (LotData s in lotData)
+            {
+                var sTextFile = lotText;
+
+                string miscDescription = "";
+                miscDescription += $"<img src=\"img\\{s.Hood}_Lot{s.HouseNumber}.jpg\" >\n";
+                if (!string.IsNullOrEmpty(s.Family)&&!s.Family.Equals("*For Sale*"))
+                {
+                    miscDescription += $"<p>Owners: The {s.Family} household</p>\n";
+                } else if (s.Family.Equals("*For Sale*"))
+                {
+                    miscDescription += $"<p>Lot currently available for sale</p>\n";
+
+                }
+                if (!string.IsNullOrEmpty(s.LotFlags) && s.Family.Contains("Beach"))
+                {
+                    miscDescription += $"<p>This is a Beach lot</p>\n";
+                }
+
+
+                sTextFile = string.Format(sTextFile, neighborhoodName, neighborhoodName, s.HouseName, s.HouseName, s.HoodName, s.LotType, miscDescription);
+                try
+                {
+
+                    File.WriteAllText(textBox2.Text + $"\\lot\\{s.HouseNumber}.html", sTextFile);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"An error has occured! \n\nError message: {ex.Message}\n\n" +
+                    $"Details:\n\n{ex.StackTrace}");
+                }
+            }
+
+        }
+
         private void GenerateIndex()
         {
             TextReader tr = new StreamReader(@"HTMLTemplate/index.html");
@@ -179,14 +234,34 @@ namespace Sims2HTMLExporter
             string playablesList = "", towniesList = "";
             foreach (SimData s in simData.Where(x => x.HouseNumber == 0))
             {
-                var isAlive = s.BodyCondition.Equals("Deceased") ?  false : true;
+                var isAlive = s.BodyCondition.Equals("Deceased") ? false : true;
                 towniesList += $"<li><a href=\"sims\\{s.NID}.html\">{s.FullName}</a>{((!isAlive) ? "💀" : "")}</li>\n";
             }
             foreach (SimData s in simData.Where(x => x.HouseNumber != 0))
             {
                 playablesList += $"<li><a href=\"sims\\{s.NID}.html\">{s.FullName}</a></li>\n";
             }
-            indexText = string.Format(indexText, neighborhoodName, neighborhoodName, playablesList, towniesList);
+
+            var lotTable = "<table id=\"myTable\" class=\"display\">\r\n  <thead><tr>\r\n  <th></th>\r\n  <th>Hood Name</th>\r\n    <th>House Name</th>\r\n    <th>Type</th>\r\n <th>Family</th>\r\n<th>Misc</th>\r\n  </tr></thead>\r\n";
+
+            lotTable += "<tbody>\n";
+            foreach (LotData lot in lotData.Where(x => !x.HoodType.Equals("Hidden Suburb")))
+            {
+                lotTable += "<tr>\n";
+                lotTable += $"<td><a href=\"lot\\{lot.HouseNumber}.html\"><img src=\"lot\\img\\{lot.Hood}_Lot{lot.HouseNumber}.jpg\" ></a></td>\n";
+                lotTable += $"<td>{lot.HoodName}</td>\n";
+                lotTable += $"<td>{lot.HouseName}</td>\n";
+                lotTable += $"<td>{lot.LotType}</td>\n";
+                lotTable += $"<td>{lot.Family}</td>\n";
+                lotTable += $"<td>{(string.IsNullOrEmpty(lot.LotFlags) ? "N/A" : lot.LotFlags)}</td>\n";
+                lotTable += "</tr>\n";
+            }
+            lotTable += "</tbody>\n";
+            lotTable += "</table>\n";
+
+            var datatablesScript = "    <script>\r\n        $(document).ready(function () {\r\n            $('#myTable').DataTable();\r\n        });\r\n    </script>";
+
+            indexText = string.Format(indexText, neighborhoodName, datatablesScript, neighborhoodName, playablesList, towniesList, lotTable);
 
             try
             {
@@ -215,6 +290,40 @@ namespace Sims2HTMLExporter
             {
                 textBox3.Text = folderBrowserDialog1.SelectedPath;
             }
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    var filePath = openFileDialog1.FileName;
+                    lotData = LotData.ParseCsvToLotData(filePath);
+                    label5.Text = "✔️";
+                }
+                catch (SecurityException ex)
+                {
+                    MessageBox.Show($"An error has occured! \n\nError message: {ex.Message}\n\n" +
+                    $"Details:\n\n{ex.StackTrace}");
+                    label5.Text = "❌";
+                    lotData = null;
+                }
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                textBox4.Text = folderBrowserDialog1.SelectedPath;
+            }
+
         }
     }
 }

@@ -2,25 +2,43 @@
 <head>
     <title>{0} Directory<!--hood--></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 
 </head>
 <body>
-    <h1>{1} Directory</h1><!--hood-->
+    {1}
+    <h1>{2} Directory</h1><!--hood-->
+    <h2>Table of Contents</h2>
+    <ol>
+        <li><a href="#playableSims">Playable Sims</a></li>
+        <li><a href="#townies">Townies</a></li>
+        <li><a href="#lots">Lots</a></li>
+    </ol>
+    <h2>Sims</h2><!--sim name-->
+    <section id="playableSims">
+        <h3>Playable Sims</h3><!--sim name-->
+        <ul>
+            {3}
+        </ul>
+    </section>
 
 
-    <h2>Playable Sims</h2><!--sim name-->
-    <ul>
-        {2}
-    </ul>
+    <section id="townies">
+        <h3>Townies</h3><!--sim name-->
+        <ul>
+            {4}
+        </ul>
+    </section>
 
+    <section id="lots">
+        <h2>Lots</h2><!--sim name-->
+        {5}
+    </section>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
+            <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
 
-    <h2>Townies</h2><!--sim name-->
-
-    <ul>
-        {3}
-    </ul>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 
 </html>
